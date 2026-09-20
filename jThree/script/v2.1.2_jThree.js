@@ -1,4 +1,4 @@
-// (2025-01-19)
+// (2025-08-24)
 
 /*!
  * jThree JavaScript Library v2.1.2
@@ -4080,37 +4080,55 @@ THREE.Matrix4.prototype = {
 
 	lookAt: function() {
 
-		var x = new THREE.Vector3();
-		var y = new THREE.Vector3();
-		var z = new THREE.Vector3();
+// backported
+// https://github.com/mrdoob/three.js/blob/master/src/math/Matrix4.js
+
+		var _x = new THREE.Vector3();
+		var _y = new THREE.Vector3();
+		var _z = new THREE.Vector3();
 
 		return function ( eye, target, up ) {
 
-			var te = this.elements;
+			const te = this.elements;
 
-			z.subVectors( eye, target ).normalize();
+			_z.subVectors( eye, target );
 
-			if ( z.length() === 0 ) {
+			if ( _z.lengthSq() === 0 ) {
 
-				z.z = 1;
+				// eye and target are in the same position
 
-			}
-
-			x.crossVectors( up, z ).normalize();
-
-			if ( x.length() === 0 ) {
-
-				z.x += 0.0001;
-				x.crossVectors( up, z ).normalize();
+				_z.z = 1;
 
 			}
 
-			y.crossVectors( z, x );
+			_z.normalize();
+			_x.crossVectors( up, _z );
 
+			if ( _x.lengthSq() === 0 ) {
 
-			te[0] = x.x; te[4] = y.x; te[8] = z.x;
-			te[1] = x.y; te[5] = y.y; te[9] = z.y;
-			te[2] = x.z; te[6] = y.z; te[10] = z.z;
+				// up and z are parallel
+
+				if ( Math.abs( up.z ) === 1 ) {
+
+					_z.x += 0.0001;
+
+				} else {
+
+					_z.z += 0.0001;
+
+				}
+
+				_z.normalize();
+				_x.crossVectors( up, _z );
+
+			}
+
+			_x.normalize();
+			_y.crossVectors( _z, _x );
+
+			te[ 0 ] = _x.x; te[ 4 ] = _y.x; te[ 8 ] = _z.x;
+			te[ 1 ] = _x.y; te[ 5 ] = _y.y; te[ 9 ] = _z.y;
+			te[ 2 ] = _x.z; te[ 6 ] = _y.z; te[ 10 ] = _z.z;
 
 			return this;
 

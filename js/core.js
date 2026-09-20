@@ -1,5 +1,5 @@
 // System Animator core basics
-// (2025-06-15)
+// (2025-08-24)
 
 var use_SA_browser_mode
 
@@ -558,7 +558,7 @@ var WallpaperEngine_CEF_native_mode
 var Settings_WE = {}
 
 //var _js_min_mode_ = true
-var localhost_mode = /localhost|192\.168\./.test(self.location.hostname)
+var localhost_mode = /localhost|192\.168\./.test(self.location.hostname) && /AT_SystemAnimator_v0001\.gadget/.test(self.location.href);
 var browser_native_mode = /^https?\:/i.test(location.href)// = true//
 if (browser_native_mode) {
   WallpaperEngine_CEF_mode = true

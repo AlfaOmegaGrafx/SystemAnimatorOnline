@@ -830,7 +830,7 @@ global.electron_as_wallpaper = (function () {
 
     app.on('quit', ()=>{
       if (attached)
-        e.refresh();
+        e.refresh?.();
     });
   }
 

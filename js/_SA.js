@@ -1,6 +1,7 @@
 /*
 
-_SA.js (2025-02-22)
+_SA.js
+// (2025-08-24)
 
 System Animator
 (c) Butz Yung / Anime Theme. All rights reserved.
@@ -2633,11 +2634,13 @@ var RAF_frame_drop = 0
 
 var Animate_RAF = function (timestamp) {
 //EV_sync_update.fps_count_func()
-  if (EV_sync_update.requestAnimationFrame_auto)
-    RAF_timerID = requestAnimationFrame(Animate_RAF)
-  else
+  if (EV_sync_update.requestAnimationFrame_auto) {
+    RAF_timerID = System._browser.requestAnimationFrame(Animate_RAF);
+  }
+  else {
     RAF_timerID = null
 //RAF_timerID = setTimeout(function () { Animate_RAF(performance.now()) }, 1000/60)
+  }
 
   if (EV_sync_update.RAF_paused) {
     RAF_timestamp = timestamp

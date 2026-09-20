@@ -1,4 +1,4 @@
-// (2025-06-15)
+// (2025-08-24)
 
 /*!
  * jThree.MMD.js JavaScript Library v1.6.1
@@ -5819,9 +5819,11 @@ if (1) {
 const c_base = MMD_SA.TEMP_v3.fromArray(MMD_SA_options.camera_position_base)
 c_pos.sub(c_base);
 // Calculate the target directly from rotation, as the usual camera update routine (.lookAt) can't get the rotation if distance is 0. Also this gives better flexibility for mouse control
-const c_distance = MMD_SA._trackball_camera.position0.distanceTo(MMD_SA._trackball_camera.target0);
-c_target.set(0,0,-1).applyEuler(rot).multiplyScalar((Math.abs(distance)) ? Math.sign(distance) * Math.max(Math.abs(distance), c_distance) : c_distance);
+// v0.34.5
+const c_distance = Math.max(distance, 0.1);
+c_target.set(0,0,-1).applyEuler(rot).multiplyScalar(c_distance);
 c_target.add(c_pos).add(c_base.setY(0));
+//DEBUG_show((currKey.time*(1-ratio)+nextKey.time*ratio) +'\n\n'+c_pos.toArray().join('\n')+'\n\n'+c_target.toArray().join('\n')+'\n\n'+c_base.toArray().join('\n')+'\n\n'+'dis:'+distance+'/'+c_distance)
 
 MMD_SA.Camera_MOD.adjust_camera('MMDCamera_onupdate', c_pos,c_target);
 
@@ -6885,7 +6887,8 @@ if (self.MMD_SA && _head_pos && (mesh.bones_by_name[head_name]) && (look_at_scre
 
 if (look_at_screen || look_at_mouse) {
 // not using MMD_SA.get_bone_rotation_parent here as it includes the look-at-screen rotation from the previous frame
-  const p_rotation_inversed = (MMD_SA_options.look_at_screen_parent_rotation_by_model(this) || ((System._browser.camera.ML_enabled || System._browser.camera.VMC_receiver.mocap_enabled) && mesh.bones_by_name["全ての親"].quaternion) || MMD_SA.get_bone_rotation_parent(mesh, head_name)).conjugate();
+  const p_rotation_inversed = (MMD_SA_options.look_at_screen_parent_rotation_by_model(this) || ((System._browser.camera.ML_enabled || System._browser.camera.VMC_receiver.mocap_enabled) && MMD_SA.THREEX.q4.copy(mesh.bones_by_name["全ての親"].quaternion).multiply((MMD_SA._trackball_camera.selfie_mode) ? MMD_SA.TEMP_q.copy(MMD_SA._trackball_camera.selfie_rotation_offset) : MMD_SA.TEMP_q.set(0,0,0,1))) || MMD_SA.get_bone_rotation_parent(mesh, head_name)).conjugate();
+
   let r = MMD_SA.face_camera(_head_pos, p_rotation_inversed);
 
   const angle_x_limit = para_SA.look_at_screen_angle_x_limit || [Math.PI*0.5, -Math.PI*0.5];
@@ -7474,6 +7477,9 @@ if (cameraMotion.length) {
 
 if (vmd) {
   cameraMotion = [vmd];
+// v0.34.5
+// Reset MMD camera properly at the beginning of playback
+  System._browser.on_animation_update.add(()=>{ MMD_SA.reset_camera(); }, 6,0);
 }
 else {
   if (cameraMotion.length) {
@@ -7583,6 +7589,8 @@ if (v._model_index > 0) return
 		}
 		//MOD by jThree
 		cameraMotion.forEach( function( m ) {
+// AT: a trick to ensure camera and avatar motion is in sync after camera motion pause during mouse control
+m.time = THREE.MMD.getModels()[0].skin.time;
 			m.update( dt, force );
 		} );
 		if ( lightMotion ) {
